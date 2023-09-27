@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/wsy998/ast/consts"
+	"github.com/wsy998/ast/internal/consts"
 )
 
 func UnwrapQuote(str string) string {

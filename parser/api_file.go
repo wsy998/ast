@@ -3,8 +3,8 @@ package parser
 import (
 	"strings"
 
-	"github.com/wsy998/ast/consts"
-	"github.com/wsy998/ast/util"
+	"github.com/wsy998/ast/internal/consts"
+	"github.com/wsy998/ast/internal/util"
 )
 
 type GoFile struct {
@@ -55,6 +55,7 @@ func NewGoFile() *GoFile {
 	return &GoFile{}
 }
 
+// WithoutReceiver Get all functions without receivers.
 func (f *GoFile) WithoutReceiver() []*GoFunc {
 	funcs := make([]*GoFunc, 0)
 	for _, goFunc := range f.Func {
@@ -65,7 +66,8 @@ func (f *GoFile) WithoutReceiver() []*GoFunc {
 	return funcs
 }
 
-func (f *GoFile) OpenReceiver() []*GoFunc {
+// ExportedFunc Get all exported functions.
+func (f *GoFile) ExportedFunc() []*GoFunc {
 	funcs := make([]*GoFunc, 0)
 	for _, goFunc := range f.Func {
 		if goFunc.Open {
@@ -74,7 +76,9 @@ func (f *GoFile) OpenReceiver() []*GoFunc {
 	}
 	return funcs
 }
-func (f *GoFile) OpenWithoutReceiver() []*GoFunc {
+
+// ExportedWithoutReceiver Get exported functions without receivers.
+func (f *GoFile) ExportedWithoutReceiver() []*GoFunc {
 	funcs := make([]*GoFunc, 0)
 	for _, goFunc := range f.Func {
 		if goFunc.Open && goFunc.Receiver != nil {
@@ -82,4 +86,64 @@ func (f *GoFile) OpenWithoutReceiver() []*GoFunc {
 		}
 	}
 	return funcs
+}
+
+// FuncByName Retrieve functions by name, regardless of whether they have a receiver.
+func (f *GoFile) FuncByName(name string) *GoFunc {
+	for _, goFunc := range f.Func {
+		if goFunc.Name == name {
+			return goFunc
+		}
+	}
+	return nil
+}
+
+// FuncByNameWithoutReceiver Retrieve functions by name, but they must not have a receiver.
+func (f *GoFile) FuncByNameWithoutReceiver(name string) *GoFunc {
+	for _, goFunc := range f.Func {
+		if goFunc.Name == name && goFunc.Receiver == nil {
+			return goFunc
+		}
+	}
+	return nil
+}
+
+// FuncByNameWithReceiver Retrieve functions by name, but they must have a receiver.
+func (f *GoFile) FuncByNameWithReceiver(name string) *GoFunc {
+	for _, goFunc := range f.Func {
+		if goFunc.Name == name && goFunc.Receiver != nil {
+			return goFunc
+		}
+	}
+	return nil
+}
+
+// ExportedFuncByName Retrieve exported functions by name.
+func (f *GoFile) ExportedFuncByName(name string) *GoFunc {
+	for _, goFunc := range f.Func {
+		if goFunc.Name == name && goFunc.Open {
+			return goFunc
+		}
+	}
+	return nil
+}
+
+// ExportedFuncByNameWithoutReceiver Retrieve exported functions by name, but they cannot have a receiver.
+func (f *GoFile) ExportedFuncByNameWithoutReceiver(name string) *GoFunc {
+	for _, goFunc := range f.Func {
+		if goFunc.Name == name && goFunc.Receiver == nil {
+			return goFunc
+		}
+	}
+	return nil
+}
+
+// ExportedFuncByNameWithReceiver Retrieve exported functions by name, but they must have a receiver.
+func (f *GoFile) ExportedFuncByNameWithReceiver(name string) *GoFunc {
+	for _, goFunc := range f.Func {
+		if goFunc.Name == name && goFunc.Receiver != nil {
+			return goFunc
+		}
+	}
+	return nil
 }

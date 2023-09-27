@@ -7,8 +7,8 @@ import (
 	"go/token"
 	"strings"
 
-	"github.com/wsy998/ast/consts"
-	"github.com/wsy998/ast/util"
+	"github.com/wsy998/ast/internal/consts"
+	"github.com/wsy998/ast/internal/util"
 )
 
 func Parse(file string) (*GoFile, error) {
@@ -69,10 +69,10 @@ func Parse(file string) (*GoFile, error) {
 	for _, goFunc := range goFile.Func {
 		for _, goStruct := range goFile.GoStructs {
 			if goFunc.Receiver.Type == goStruct.Name {
-				if goStruct.Fun == nil {
-					goStruct.Fun = make([]*GoFunc, 0)
+				if goStruct.Funs == nil {
+					goStruct.Funs = make([]*GoFunc, 0)
 				}
-				goStruct.Fun = append(goStruct.Fun, goFunc)
+				goStruct.Funs = append(goStruct.Funs, goFunc)
 			}
 			if goFunc.Name == "New"+util.UcFirst(goStruct.Name) {
 				if goFunc.Receiver != nil || len(goFunc.In) != 0 || len(goFunc.Out) != 1 {
@@ -100,6 +100,7 @@ func parseField(field *ast.FieldList, importMap map[string]string) []*GoField {
 			goField := NewGoField()
 			goField.Open = name.IsExported()
 			goField.Name = name.Name
+			goField.Comment = f.Comment.Text()
 			goField.Package, goField.Type, goField.Pointer, goField.Field = parseFieldType(f.Type, importMap)
 			goField.Tag = make(map[string]string)
 			if f.Tag != nil && len(f.Tag.Value) > 0 {

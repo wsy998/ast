@@ -1,8 +1,8 @@
 package parser
 
 import (
-	"github.com/wsy998/ast/consts"
-	"github.com/wsy998/ast/util"
+	"github.com/wsy998/ast/internal/consts"
+	"github.com/wsy998/ast/internal/util"
 )
 
 type GoStruct struct {
@@ -10,7 +10,7 @@ type GoStruct struct {
 	Package     map[string]string
 	Name        string
 	Field       []*GoField
-	Fun         []*GoFunc
+	Funs        []*GoFunc
 	Open        bool
 	Constructor *GoFunc
 }
@@ -33,7 +33,7 @@ func (g *GoStruct) String() string {
 		builder.WriteTab()
 		builder.WriteStringWithEndl(field.String())
 	}
-	for _, field := range g.Fun {
+	for _, field := range g.Funs {
 		builder.WriteTab()
 		builder.WriteStringWithEndl(field.String())
 	}
@@ -41,26 +41,6 @@ func (g *GoStruct) String() string {
 	builder.WriteEndl()
 	return builder.String()
 }
-
-func (g *GoStruct) OpenFun() []*GoFunc {
-	funcs := make([]*GoFunc, 0)
-	for _, fun := range g.Fun {
-		if fun.Open {
-			funcs = append(funcs, fun)
-		}
-	}
-	return funcs
-}
-func (g *GoStruct) OpenField() []*GoField {
-	funcs := make([]*GoField, 0)
-	for _, fun := range g.Field {
-		if fun.Open {
-			funcs = append(funcs, fun)
-		}
-	}
-	return funcs
-}
-
 func NewGoStruct() *GoStruct {
 	return &GoStruct{}
 }

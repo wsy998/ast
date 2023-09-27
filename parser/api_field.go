@@ -1,8 +1,8 @@
 package parser
 
 import (
-	"github.com/wsy998/ast/consts"
-	"github.com/wsy998/ast/util"
+	"github.com/wsy998/ast/internal/consts"
+	"github.com/wsy998/ast/internal/util"
 )
 
 type GoField struct {
@@ -13,6 +13,7 @@ type GoField struct {
 	Pointer bool
 	Tag     map[string]string
 	Open    bool
+	Comment string
 }
 
 func (f *GoField) String() string {
