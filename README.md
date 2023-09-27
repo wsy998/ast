@@ -2,6 +2,10 @@
 
 Based on the official AST package, support single files and single packages, but currently do not support package-level
 variables and struct composition.
+[中文文档](./README_ZH_CN.md)
+## Features
+Parse a single file or single package, and retrieve all the structs and functions within the file or package.
+
 
 ## Installation
 
