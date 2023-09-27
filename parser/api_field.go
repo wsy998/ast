@@ -1,23 +1,26 @@
 package parser
 
 import (
+	"fmt"
+	"unsafe"
+
 	"github.com/wsy998/ast/internal/consts"
 	"github.com/wsy998/ast/internal/util"
 )
 
 type GoField struct {
+	Pointer bool
+	Open    bool
+	Tag     map[string]string
 	Package string
 	Name    string
 	Type    string
-	Field   []*GoField
-	Pointer bool
-	Tag     map[string]string
-	Open    bool
 	Comment string
+	Field   []*GoField
 }
 
 func (f *GoField) String() string {
-	builder := util.Text{}
+	builder := util.NewText()
 	if !util.EmptyString(f.Name) {
 		builder.WriteString(f.Name)
 		builder.WriteSpace()
@@ -62,5 +65,7 @@ func (f *GoField) String() string {
 }
 
 func NewGoField() *GoField {
+	sizeof := unsafe.Sizeof(GoField{})
+	fmt.Println(sizeof)
 	return &GoField{}
 }

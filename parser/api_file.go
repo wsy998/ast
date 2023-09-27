@@ -8,13 +8,13 @@ import (
 )
 
 type GoFile struct {
+	Imports   map[string]string
 	GoStructs []*GoStruct
 	Func      []*GoFunc
-	Imports   map[string]string
 }
 
 func (f *GoFile) String() string {
-	builder := util.Text{}
+	builder := util.NewText()
 	if len(f.Imports) > 0 {
 		builder.WriteString(consts.Import)
 		if len(f.Imports) > 1 {
@@ -52,6 +52,7 @@ func (f *GoFile) String() string {
 }
 
 func NewGoFile() *GoFile {
+
 	return &GoFile{}
 }
 

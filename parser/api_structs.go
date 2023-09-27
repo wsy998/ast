@@ -16,7 +16,7 @@ type GoStruct struct {
 }
 
 func (g *GoStruct) String() string {
-	builder := util.Text{}
+	builder := util.NewText()
 	if !util.EmptyString(g.Comment) {
 		builder.WriteString(consts.Comment)
 		builder.WriteSpace()

@@ -1,6 +1,7 @@
 package util
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 
@@ -37,51 +38,71 @@ func IsLetterLower(b byte) bool {
 }
 
 type Text struct {
-	strings.Builder
+	builder *bytes.Buffer
 }
 
-func (receiver *Text) Writef(format string, args ...any) {
-	receiver.WriteString(fmt.Sprintf(format, args...))
-}
-func (receiver *Text) WriteQuote(str string) {
-	receiver.Writef("\"%s\"", str)
+func NewText() *Text {
+	m := &Text{builder: bytes.NewBuffer(nil)}
+	return m
 }
 
-func (receiver *Text) WriteSpace() {
-	receiver.WriteByte(consts.Space)
-}
-func (receiver *Text) WriteTab() {
-	receiver.WriteByte(consts.Tab)
-}
-func (receiver *Text) WriteStar() {
-	receiver.WriteByte(consts.Star)
-}
-func (receiver *Text) WriteEndl() {
-	receiver.WriteByte(consts.Endl)
-}
-func (receiver *Text) WriteOpenBrace() {
-	receiver.WriteByte(consts.OpenBrace)
-}
-func (receiver *Text) WriteCloseBrace() {
-	receiver.WriteByte(consts.CloseBrace)
-}
-func (receiver *Text) WriteTagSign() {
-	receiver.WriteByte(consts.TagSign)
+func (receiver *Text) WriteString(str string) (int, error) {
+	receiver.builder.WriteString(str)
+	return len(str), nil
 }
 
-func (receiver *Text) WriteOpenParen() {
-	receiver.WriteByte(consts.OpenParen)
+func (receiver *Text) WriteByte(str byte) error {
+	return receiver.builder.WriteByte(str)
 }
-func (receiver *Text) WriteCloseParen() {
-	receiver.WriteByte(consts.CloseParen)
+func (receiver *Text) String() string {
+	return receiver.builder.String()
 }
-func (receiver *Text) WriteComma() {
-	receiver.WriteByte(consts.Comma)
+
+func (receiver *Text) Writef(format string, args ...any) (int, error) {
+	return receiver.WriteString(fmt.Sprintf(format, args...))
 }
-func (receiver *Text) WriteWithQuote(str string) {
-	receiver.Writef("\"%s\"", str)
+func (receiver *Text) WriteQuote(str string) (int, error) {
+	return receiver.Writef("\"%s\"", str)
 }
-func (receiver *Text) WriteStringWithEndl(str string) {
-	receiver.WriteString(str)
-	receiver.WriteEndl()
+
+func (receiver *Text) WriteSpace() error {
+	return receiver.WriteByte(consts.Space)
+}
+func (receiver *Text) WriteTab() error {
+	return receiver.WriteByte(consts.Tab)
+}
+func (receiver *Text) WriteStar() error {
+	return receiver.WriteByte(consts.Star)
+}
+func (receiver *Text) WriteEndl() error {
+	return receiver.WriteByte(consts.Endl)
+}
+func (receiver *Text) WriteOpenBrace() error {
+	return receiver.WriteByte(consts.OpenBrace)
+}
+func (receiver *Text) WriteCloseBrace() error {
+	return receiver.WriteByte(consts.CloseBrace)
+}
+func (receiver *Text) WriteTagSign() error {
+	return receiver.WriteByte(consts.TagSign)
+}
+
+func (receiver *Text) WriteOpenParen() error {
+	return receiver.WriteByte(consts.OpenParen)
+}
+func (receiver *Text) WriteCloseParen() error {
+	return receiver.WriteByte(consts.CloseParen)
+}
+func (receiver *Text) WriteComma() error {
+	return receiver.WriteByte(consts.Comma)
+}
+func (receiver *Text) WriteWithQuote(str string) (int, error) {
+	return receiver.Writef("\"%s\"", str)
+}
+func (receiver *Text) WriteStringWithEndl(str string) (int, error) {
+	writeString, err := receiver.WriteString(str)
+	if err != nil {
+		return 0, err
+	}
+	return writeString + 1, receiver.WriteEndl()
 }

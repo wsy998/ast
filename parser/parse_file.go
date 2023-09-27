@@ -127,7 +127,8 @@ func parseFieldType(expr ast.Expr, importMap map[string]string) (string, string,
 	case *ast.Ident:
 		return consts.Empty, e.Name, false, nil
 	case *ast.SelectorExpr:
-		return e.X.(*ast.Ident).Name, fmt.Sprintf("%s.%s", e.X.(*ast.Ident).Name, e.Sel.Name), false, nil
+		ident := e.X.(*ast.Ident)
+		return ident.Name, fmt.Sprintf("%s.%s", ident.Name, e.Sel.Name), false, nil
 	case *ast.StructType:
 		field := parseField(e.Fields, importMap)
 		return consts.Empty, consts.TypeStruct, false, field
@@ -136,7 +137,8 @@ func parseFieldType(expr ast.Expr, importMap map[string]string) (string, string,
 		case *ast.Ident:
 			return consts.Empty, rt.Name, true, nil
 		case *ast.SelectorExpr:
-			return rt.X.(*ast.Ident).Name, fmt.Sprintf("%s.%s", rt.X.(*ast.Ident).Name, rt.Sel.Name), true, nil
+			ident := rt.X.(*ast.Ident)
+			return ident.Name, fmt.Sprintf("%s.%s", ident.Name, rt.Sel.Name), true, nil
 		case *ast.StructType:
 			field := parseField(rt.Fields, importMap)
 			return consts.Empty, consts.TypeStruct, true, field

@@ -6,17 +6,18 @@ import (
 )
 
 type GoFunc struct {
+	Open     bool
+	In       []*GoField
+	Out      []*GoField
 	Package  map[string]string
 	Receiver *GoField
 	Comment  string
 	Name     string
-	In       []*GoField
-	Out      []*GoField
-	Open     bool
 }
 
 func (g *GoFunc) String() string {
-	builder := util.Text{}
+
+	builder := util.NewText()
 	if !util.EmptyString(g.Comment) {
 		builder.WriteString(consts.Comment)
 		builder.WriteSpace()
