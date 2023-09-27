@@ -14,6 +14,10 @@ type O struct {
 	c *string
 	d os.File
 	e *os.File
+	f struct {
+		A string
+		b int
+	}
 }
 
 func (receiver *O) A() {

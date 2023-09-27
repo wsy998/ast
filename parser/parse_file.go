@@ -1,10 +1,14 @@
 package parser
 
 import (
+	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
 	"strings"
+
+	"github.com/wsy998/ast/consts"
+	"github.com/wsy998/ast/util"
 )
 
 func Parse(file string) (*GoFile, error) {
@@ -14,7 +18,17 @@ func Parse(file string) (*GoFile, error) {
 	if err != nil {
 		return nil, err
 	}
-	ast.Print(set, parseFile)
+	importMap := make(map[string]string)
+	for _, spec := range parseFile.Imports {
+		value := util.UnwrapQuote(spec.Path.Value)
+		index := strings.LastIndexByte(value, consts.Slash)
+		name := value[index+1:]
+		if spec.Name != nil && len(spec.Name.Name) > 0 {
+			name = util.UnwrapQuote(spec.Name.Name)
+		}
+		importMap[name] = value
+	}
+	goFile.Imports = importMap
 	decls := parseFile.Decls
 	for _, decl := range decls {
 		switch d := decl.(type) {
@@ -24,15 +38,15 @@ func Parse(file string) (*GoFile, error) {
 			}
 
 			goFunc := NewGoFunc()
-			field := parseField(d.Recv)
+			field := parseField(d.Recv, importMap)
 			if len(field) > 0 {
 				goFunc.Receiver = field[0]
 			}
 			goFunc.Open = d.Name.IsExported()
 			goFunc.Name = d.Name.Name
 			goFunc.Comment = d.Doc.Text()
-			goFunc.In = parseField(d.Type.Params)
-			goFunc.Out = parseField(d.Type.Results)
+			goFunc.In = parseField(d.Type.Params, importMap)
+			goFunc.Out = parseField(d.Type.Results, importMap)
 			goFile.Func = append(goFile.Func, goFunc)
 		case *ast.GenDecl:
 			if d.Tok == token.TYPE {
@@ -42,7 +56,7 @@ func Parse(file string) (*GoFile, error) {
 							goStruct := NewGoStruct()
 							goStruct.Name = v.Name.Name
 							goStruct.Comment = v.Comment.Text()
-							goStruct.Field = parseField(s.Fields)
+							goStruct.Field = parseField(s.Fields, importMap)
 							goStruct.Open = v.Name.IsExported()
 							goFile.GoStructs = append(goFile.GoStructs, goStruct)
 						}
@@ -60,6 +74,14 @@ func Parse(file string) (*GoFile, error) {
 				}
 				goStruct.Fun = append(goStruct.Fun, goFunc)
 			}
+			if goFunc.Name == "New"+util.UcFirst(goStruct.Name) {
+				if goFunc.Receiver != nil || len(goFunc.In) != 0 || len(goFunc.Out) != 1 {
+					continue
+				}
+				if goFunc.Out[0].Type == goStruct.Name {
+					goStruct.Constructor = goFunc
+				}
+			}
 		}
 
 	}
@@ -67,7 +89,7 @@ func Parse(file string) (*GoFile, error) {
 	return goFile, nil
 }
 
-func parseField(field *ast.FieldList) []*GoField {
+func parseField(field *ast.FieldList, importMap map[string]string) []*GoField {
 	if field.NumFields() == 0 {
 		return nil
 	}
@@ -78,16 +100,16 @@ func parseField(field *ast.FieldList) []*GoField {
 			goField := NewGoField()
 			goField.Open = name.IsExported()
 			goField.Name = name.Name
-			goField.Type, goField.Pointer = parseFieldType(f.Type)
+			goField.Package, goField.Type, goField.Pointer, goField.Field = parseFieldType(f.Type, importMap)
 			goField.Tag = make(map[string]string)
 			if f.Tag != nil && len(f.Tag.Value) > 0 {
-				tag := unWrapTag(f.Tag.Value)
-				for _, v := range strings.Split(tag, " ") {
-					v = strings.Trim(v, " ")
-					if v != "" {
-						indexByte := strings.IndexByte(v, ':')
+				tag := util.UnwrapQuote(f.Tag.Value)
+				for _, v := range strings.Split(tag, string(consts.Space)) {
+					v = strings.Trim(v, string(consts.Space))
+					if !util.EmptyString(v) {
+						indexByte := strings.IndexByte(v, consts.Colon)
 						name := v[:indexByte]
-						value := unWrapTag(v[indexByte+1:])
+						value := util.UnwrapQuote(v[indexByte+1:])
 						goField.Tag[name] = value
 					}
 				}
@@ -98,32 +120,27 @@ func parseField(field *ast.FieldList) []*GoField {
 	return k
 }
 
-func unWrapTag(str string) string {
-	s := []string{"`", `"`}
-	sl := ""
-	for _, s2 := range s {
-		if strings.HasPrefix(str, s2) && strings.HasSuffix(str, s2) {
-			sl = str[1 : len(str)-1]
-		}
+func parseFieldType(expr ast.Expr, importMap map[string]string) (string, string, bool, []*GoField) {
 
-	}
-	return sl
-}
-
-func parseFieldType(expr ast.Expr) (string, bool) {
 	switch e := expr.(type) {
 	case *ast.Ident:
-		return e.Name, false
+		return consts.Empty, e.Name, false, nil
 	case *ast.SelectorExpr:
-		return e.X.(*ast.Ident).Name + "." + e.Sel.Name, false
+		return e.X.(*ast.Ident).Name, fmt.Sprintf("%s.%s", e.X.(*ast.Ident).Name, e.Sel.Name), false, nil
+	case *ast.StructType:
+		field := parseField(e.Fields, importMap)
+		return consts.Empty, consts.TypeStruct, false, field
 	case *ast.StarExpr:
 		switch rt := e.X.(type) {
 		case *ast.Ident:
-			return rt.Name, true
+			return consts.Empty, rt.Name, true, nil
 		case *ast.SelectorExpr:
-			return rt.X.(*ast.Ident).Name + "." + rt.Sel.Name, true
+			return rt.X.(*ast.Ident).Name, fmt.Sprintf("%s.%s", rt.X.(*ast.Ident).Name, rt.Sel.Name), true, nil
+		case *ast.StructType:
+			field := parseField(rt.Fields, importMap)
+			return consts.Empty, consts.TypeStruct, true, field
 		}
 
 	}
-	return "", false
+	return consts.Empty, consts.Empty, false, nil
 }
