@@ -1,14 +1,5 @@
 package parser
 
-import (
-	"reflect"
-)
-
-func init() {
-	UnsafePointer
-	reflect.ValueOf().Kind()
-}
-
 const (
 	Bool          = "bool"
 	Int           = "int"
