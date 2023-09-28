@@ -1,8 +1,8 @@
 package parser
 
 import (
-	"github.com/wsy998/ast/v1/internal/consts"
-	"github.com/wsy998/ast/v1/internal/util"
+	"github.com/wsy998/ast/internal/consts"
+	"github.com/wsy998/ast/internal/util"
 )
 
 type GoFunc struct {

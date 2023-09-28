@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/wsy998/ast/v1/parser"
+	"github.com/wsy998/ast/parser"
 )
 
 func TestParseFile(t *testing.T) {

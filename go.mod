@@ -1,3 +1,3 @@
-module github.com/wsy998/ast/v1
+module github.com/wsy998/ast
 
 go 1.18
