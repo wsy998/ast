@@ -1,10 +1,13 @@
 package parser
 
 import (
+	"bytes"
 	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"io"
+	"os"
 	"strings"
 
 	"github.com/wsy998/ast/internal/consts"
@@ -12,12 +15,30 @@ import (
 )
 
 func Parse(file string) (*GoFile, error) {
-	goFile := NewGoFile()
-	set := token.NewFileSet()
-	parseFile, err := parser.ParseFile(set, file, nil, 0)
+	fileP, err := os.Open(file)
 	if err != nil {
 		return nil, err
 	}
+	defer fileP.Close()
+	return ParseReader(fileP)
+}
+
+func ParseReader(reader io.Reader) (*GoFile, error) {
+	buffer := bytes.NewBuffer(nil)
+	_, err := io.Copy(buffer, reader)
+	if err != nil && err != io.EOF {
+		return nil, err
+	}
+	set := token.NewFileSet()
+	parseFile, err := parser.ParseFile(set, "", buffer.Bytes(), 0)
+	if err != nil {
+		return nil, err
+	}
+	return parse(parseFile)
+}
+
+func parse(parseFile *ast.File) (*GoFile, error) {
+	goFile := NewGoFile()
 	importMap := make(map[string]string)
 	for _, spec := range parseFile.Imports {
 		value := util.UnwrapQuote(spec.Path.Value)
@@ -65,7 +86,6 @@ func Parse(file string) (*GoFile, error) {
 			}
 		}
 	}
-
 	for _, goFunc := range goFile.Func {
 		for _, goStruct := range goFile.GoStructs {
 			if goFunc.Receiver.Type == goStruct.Name {
@@ -85,7 +105,6 @@ func Parse(file string) (*GoFile, error) {
 		}
 
 	}
-
 	return goFile, nil
 }
 

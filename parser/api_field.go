@@ -2,6 +2,9 @@ package parser
 
 import (
 	"strings"
+
+	"github.com/wsy998/ast/internal/consts"
+	"github.com/wsy998/ast/internal/util"
 )
 
 type GoField struct {
