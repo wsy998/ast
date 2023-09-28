@@ -7,8 +7,8 @@ import (
 	"go/token"
 	"strings"
 
-	"github.com/wsy998/ast/internal/consts"
-	"github.com/wsy998/ast/internal/util"
+	"github.com/wsy998/ast/v1/internal/consts"
+	"github.com/wsy998/ast/v1/internal/util"
 )
 
 func Parse(file string) (*GoFile, error) {
@@ -101,7 +101,7 @@ func parseField(field *ast.FieldList, importMap map[string]string) []*GoField {
 			goField.Open = name.IsExported()
 			goField.Name = name.Name
 			goField.Comment = f.Comment.Text()
-			goField.Package, goField.Type, goField.Pointer, goField.Field = parseFieldType(f.Type, importMap)
+			goField.Package, goField.Type, goField.Pointer, goField.Field, goField.Chan = parseFieldType(f.Type, importMap)
 			goField.Tag = make(map[string]string)
 			if f.Tag != nil && len(f.Tag.Value) > 0 {
 				tag := util.UnwrapQuote(f.Tag.Value)
@@ -121,29 +121,23 @@ func parseField(field *ast.FieldList, importMap map[string]string) []*GoField {
 	return k
 }
 
-func parseFieldType(expr ast.Expr, importMap map[string]string) (string, string, bool, []*GoField) {
+func parseFieldType(expr ast.Expr, importMap map[string]string) (string, string, bool, []*GoField, bool) {
 
 	switch e := expr.(type) {
 	case *ast.Ident:
-		return consts.Empty, e.Name, false, nil
+		return consts.Empty, e.Name, false, nil, false
 	case *ast.SelectorExpr:
 		ident := e.X.(*ast.Ident)
-		return ident.Name, fmt.Sprintf("%s.%s", ident.Name, e.Sel.Name), false, nil
+		return ident.Name, fmt.Sprintf("%s.%s", ident.Name, e.Sel.Name), false, nil, false
 	case *ast.StructType:
 		field := parseField(e.Fields, importMap)
-		return consts.Empty, consts.TypeStruct, false, field
+		return consts.Empty, consts.TypeStruct, false, field, false
+	case *ast.ChanType:
+		pkg, types, p, fields, _ := parseFieldType(e.Value, importMap)
+		return pkg, types, p, fields, true
 	case *ast.StarExpr:
-		switch rt := e.X.(type) {
-		case *ast.Ident:
-			return consts.Empty, rt.Name, true, nil
-		case *ast.SelectorExpr:
-			ident := rt.X.(*ast.Ident)
-			return ident.Name, fmt.Sprintf("%s.%s", ident.Name, rt.Sel.Name), true, nil
-		case *ast.StructType:
-			field := parseField(rt.Fields, importMap)
-			return consts.Empty, consts.TypeStruct, true, field
-		}
-
+		pkg, name, _, fields, b2 := parseFieldType(e.X, importMap)
+		return pkg, name, true, fields, b2
 	}
-	return consts.Empty, consts.Empty, false, nil
+	return consts.Empty, consts.Empty, false, nil, false
 }

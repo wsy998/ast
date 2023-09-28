@@ -11,7 +11,7 @@ type l struct {
 type O struct {
 	l
 	a string `k:"ss"`
-	c *string
+	c chan *string
 	d os.File
 	e *os.File
 	f struct {

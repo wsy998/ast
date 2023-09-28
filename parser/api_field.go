@@ -1,16 +1,16 @@
 package parser
 
 import (
-	"fmt"
-	"unsafe"
+	"strings"
 
-	"github.com/wsy998/ast/internal/consts"
-	"github.com/wsy998/ast/internal/util"
+	"github.com/wsy998/ast/v1/internal/consts"
+	"github.com/wsy998/ast/v1/internal/util"
 )
 
 type GoField struct {
 	Pointer bool
 	Open    bool
+	Chan    bool
 	Tag     map[string]string
 	Package string
 	Name    string
@@ -28,22 +28,26 @@ func (f *GoField) String() string {
 	if f.Pointer {
 		builder.WriteStar()
 	}
+	if f.Chan {
+		builder.WriteString("chan")
+		builder.WriteSpace()
+	}
+
 	builder.WriteString(f.Type)
 
-	if f.Type == consts.TypeStruct {
+	if f.Type == consts.TypeStruct || strings.HasSuffix(f.Type, "struct") {
 		builder.WriteSpace()
 		builder.WriteOpenBrace()
-		builder.WriteEndl()
 		if f.Field != nil && len(f.Field) > 0 {
+			builder.WriteEndl()
 			for _, m := range f.Field {
 				builder.WriteTab()
 				builder.WriteTab()
 				builder.WriteStringWithEndl(m.String())
 			}
+			builder.WriteTab()
 		}
-		builder.WriteTab()
 		builder.WriteCloseBrace()
-		builder.WriteEndl()
 	}
 	if f.Tag != nil && len(f.Tag) > 0 {
 		builder.WriteSpace()
@@ -65,7 +69,5 @@ func (f *GoField) String() string {
 }
 
 func NewGoField() *GoField {
-	sizeof := unsafe.Sizeof(GoField{})
-	fmt.Println(sizeof)
 	return &GoField{}
 }

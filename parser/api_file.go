@@ -3,8 +3,8 @@ package parser
 import (
 	"strings"
 
-	"github.com/wsy998/ast/internal/consts"
-	"github.com/wsy998/ast/internal/util"
+	"github.com/wsy998/ast/v1/internal/consts"
+	"github.com/wsy998/ast/v1/internal/util"
 )
 
 type GoFile struct {
