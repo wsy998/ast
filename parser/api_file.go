@@ -20,8 +20,10 @@ func (f *GoFile) String() string {
 		if len(f.Imports) > 1 {
 			builder.WriteSpace()
 			builder.WriteOpenParen()
+			builder.WriteEndl()
 			for n, v := range f.Imports {
-				if !util.EmptyString(n) {
+				builder.WriteTab()
+				if !strings.HasSuffix(v, n) {
 					builder.WriteSpace()
 					builder.WriteString(n)
 				}
@@ -32,6 +34,7 @@ func (f *GoFile) String() string {
 			builder.WriteStringWithEndl(string(consts.CloseParen))
 		} else {
 			for n, v := range f.Imports {
+				builder.WriteTab()
 				if !strings.HasSuffix(v, n) {
 					builder.WriteSpace()
 					builder.WriteString(n)

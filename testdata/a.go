@@ -25,8 +25,9 @@ func F(a *string) (c *string) {
 func G() (c *os.File) {
 	return &os.File{}
 }
-func H() (c os.File) {
-	return os.File{}
+func H() (c func()) {
+	var s = func() {}
+	return s
 }
 func I(c os.File) {
 }

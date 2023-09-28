@@ -29,6 +29,7 @@ func (g *GoFunc) String() string {
 	if g.Receiver != nil {
 		builder.Writef("(%s)", g.Receiver.String())
 	}
+	builder.WriteSpace()
 	builder.WriteString(g.Name)
 	builder.WriteOpenParen()
 	if len(g.In) > 0 {

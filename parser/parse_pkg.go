@@ -6,7 +6,11 @@ import (
 	"strings"
 )
 
-func ParsePackage(pkg string) (*GoPkg, error) {
+func ParsePackage(pkg string, recursive ...bool) (*GoPkg, error) {
+	r := false
+	if len(recursive) > 0 {
+		r = recursive[0]
+	}
 	dir, err := os.ReadDir(pkg)
 	if err != nil {
 		return nil, err
@@ -15,7 +19,22 @@ func ParsePackage(pkg string) (*GoPkg, error) {
 	funcs := make([]*GoFunc, 0)
 	imports := make(map[string]string)
 	for _, entry := range dir {
-		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".go") {
+		if entry.IsDir() && r {
+			parsePackage, err := ParsePackage(filepath.Join(pkg, entry.Name()), r)
+			if err != nil {
+				return nil, err
+			}
+			for _, p := range parsePackage.GoStructs {
+				structs = append(structs, p)
+			}
+			for _, p := range parsePackage.Func {
+				funcs = append(funcs, p)
+			}
+			for m, p := range parsePackage.Imports {
+				imports[m] = p
+			}
+		}
+		if !strings.HasSuffix(entry.Name(), ".go") {
 			continue
 		}
 		parse, err := Parse(filepath.Join(pkg, entry.Name()))

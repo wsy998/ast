@@ -88,14 +88,16 @@ func parse(parseFile *ast.File) (*GoFile, error) {
 	}
 	for _, goFunc := range goFile.Func {
 		for _, goStruct := range goFile.GoStructs {
-			if goFunc.Receiver.Type == goStruct.Name {
-				if goStruct.Funs == nil {
-					goStruct.Funs = make([]*GoFunc, 0)
+			if goFunc.Receiver != nil {
+				if goFunc.Receiver.Type == goStruct.Name {
+					if goStruct.Funs == nil {
+						goStruct.Funs = make([]*GoFunc, 0)
+					}
+					goStruct.Funs = append(goStruct.Funs, goFunc)
 				}
-				goStruct.Funs = append(goStruct.Funs, goFunc)
-			}
-			if goFunc.Name == "New"+util.UcFirst(goStruct.Name) {
-				if goFunc.Receiver != nil || len(goFunc.In) != 0 || len(goFunc.Out) != 1 {
+
+			} else if goFunc.Name == "New"+util.UcFirst(goStruct.Name) {
+				if len(goFunc.In) != 0 || len(goFunc.Out) != 1 {
 					continue
 				}
 				if goFunc.Out[0].Type == goStruct.Name {
@@ -115,25 +117,32 @@ func parseField(field *ast.FieldList, importMap map[string]string) []*GoField {
 	k := make([]*GoField, 0)
 	list := field.List
 	for _, f := range list {
-		for _, name := range f.Names {
-			goField := NewGoField()
-			goField.Open = name.IsExported()
-			goField.Name = name.Name
-			goField.Comment = f.Comment.Text()
-			goField.Package, goField.Type, goField.Pointer, goField.Field, goField.Chan = parseFieldType(f.Type, importMap)
-			goField.Tag = make(map[string]string)
-			if f.Tag != nil && len(f.Tag.Value) > 0 {
-				tag := util.UnwrapQuote(f.Tag.Value)
-				for _, v := range strings.Split(tag, string(consts.Space)) {
-					v = strings.Trim(v, string(consts.Space))
-					if !util.EmptyString(v) {
-						indexByte := strings.IndexByte(v, consts.Colon)
-						name := v[:indexByte]
-						value := util.UnwrapQuote(v[indexByte+1:])
-						goField.Tag[name] = value
+		if f.Names != nil {
+			for _, name := range f.Names {
+				goField := NewGoField()
+				goField.Open = name.IsExported()
+				goField.Name = name.Name
+				goField.Comment = f.Comment.Text()
+				goField.Package, goField.Type, goField.Pointer, goField.Field, goField.Chan = parseFieldType(f.Type, importMap)
+				goField.Tag = make(map[string]string)
+				if f.Tag != nil && len(f.Tag.Value) > 0 {
+					tag := util.UnwrapQuote(f.Tag.Value)
+					for _, v := range strings.Split(tag, string(consts.Space)) {
+						v = strings.Trim(v, string(consts.Space))
+						if !util.EmptyString(v) {
+							indexByte := strings.IndexByte(v, consts.Colon)
+							name := v[:indexByte]
+							value := util.UnwrapQuote(v[indexByte+1:])
+							goField.Tag[name] = value
+						}
 					}
 				}
+				k = append(k, goField)
 			}
+		} else {
+			goField := NewGoField()
+			goField.Comment = f.Comment.Text()
+			goField.Package, goField.Type, goField.Pointer, goField.Field, goField.Chan = parseFieldType(f.Type, importMap)
 			k = append(k, goField)
 		}
 	}
@@ -151,6 +160,10 @@ func parseFieldType(expr ast.Expr, importMap map[string]string) (string, string,
 	case *ast.StructType:
 		field := parseField(e.Fields, importMap)
 		return consts.Empty, consts.TypeStruct, false, field, false
+	case *ast.Ellipsis:
+		return consts.Empty, e.Elt.(*ast.Ident).Name, false, nil, false
+	case *ast.FuncType:
+		return consts.Empty, "func", false, nil, false
 	case *ast.ChanType:
 		pkg, types, p, fields, _ := parseFieldType(e.Value, importMap)
 		return pkg, types, p, fields, true

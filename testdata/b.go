@@ -49,3 +49,25 @@ func (receiver *O) I(c os.File) {
 }
 func (receiver *O) J(c *os.File) {
 }
+func makeVertexShader(src string) uint32 {
+	return 0
+	// vShader := gl.CreateShader(gl.VERTEX_SHADER)
+	//
+	// // str := gl.Str(src)
+	// strs, free := gl.Strs(src)
+	// defer free()
+	// // _ = free
+	// // free()
+	// gl.ShaderSource(vShader, 1, strs, nil)
+	// gl.CompileShader(vShader)
+	// var status int32
+	// gl.GetShaderiv(vShader, gl.COMPILE_STATUS, &status)
+	// log := [512]byte{}
+	// if status == gl.FALSE {
+	// 	logLength := int32(0)
+	// 	gl.GetShaderInfoLog(vShader, 512, &logLength, &log[0])
+	// 	fmt.Printf("VertexShader failed to compile %v: %s\n", src, string(log[:logLength]))
+	// }
+
+	// return vShader
+}

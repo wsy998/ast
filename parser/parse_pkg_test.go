@@ -16,7 +16,7 @@ func TestParseFile(t *testing.T) {
 }
 
 func TestParseFile2(t *testing.T) {
-	parse, err := parser.ParsePackage("testdata")
+	parse, err := parser.Parse("testdata/c.go")
 	if err != nil {
 		fmt.Println(err)
 	}
