@@ -1,4 +1,4 @@
-package parser
+package api
 
 // AllExportedFun Retrieve all exported functions.
 func (g *GoStruct) AllExportedFun() []*GoFunc {

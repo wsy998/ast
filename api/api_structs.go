@@ -1,4 +1,4 @@
-package parser
+package api
 
 import (
 	"github.com/wsy998/ast/internal/consts"
@@ -13,9 +13,11 @@ type GoStruct struct {
 	Funs        []*GoFunc
 	Open        bool
 	Constructor *GoFunc
+	Impl        []interface{}
 }
 
 func (g *GoStruct) String() string {
+
 	builder := util.NewText()
 	if !util.EmptyString(g.Comment) {
 		builder.WriteString(consts.Comment)

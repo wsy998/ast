@@ -1,4 +1,4 @@
-package parser
+package api
 
 // GetStructByName Retrieve a struct by function, regardless of whether it's exported.
 func (f *GoFile) GetStructByName(name string) *GoStruct {

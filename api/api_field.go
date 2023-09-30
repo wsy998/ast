@@ -1,22 +1,16 @@
-package parser
+package api
 
 import (
-	"strings"
-
 	"github.com/wsy998/ast/internal/consts"
 	"github.com/wsy998/ast/internal/util"
 )
 
 type GoField struct {
-	Pointer bool
 	Open    bool
-	Chan    bool
 	Tag     map[string]string
-	Package string
 	Name    string
-	Type    string
+	Type    IFieldType
 	Comment string
-	Field   []*GoField
 }
 
 func (f *GoField) String() string {
@@ -25,30 +19,10 @@ func (f *GoField) String() string {
 		builder.WriteString(f.Name)
 		builder.WriteSpace()
 	}
-	if f.Pointer {
-		builder.WriteStar()
-	}
-	if f.Chan {
-		builder.WriteString("chan")
-		builder.WriteSpace()
+	if f.Type != nil {
+		builder.WriteString(f.Type.String())
 	}
 
-	builder.WriteString(f.Type)
-
-	if f.Type == consts.TypeStruct || strings.HasSuffix(f.Type, "struct") {
-		builder.WriteSpace()
-		builder.WriteOpenBrace()
-		if f.Field != nil && len(f.Field) > 0 {
-			builder.WriteEndl()
-			for _, m := range f.Field {
-				builder.WriteTab()
-				builder.WriteTab()
-				builder.WriteStringWithEndl(m.String())
-			}
-			builder.WriteTab()
-		}
-		builder.WriteCloseBrace()
-	}
 	if f.Tag != nil && len(f.Tag) > 0 {
 		builder.WriteSpace()
 		builder.WriteTagSign()

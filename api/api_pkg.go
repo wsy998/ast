@@ -1,18 +1,34 @@
-package parser
+package api
 
 import (
+	"strings"
+
 	"github.com/wsy998/ast/internal/consts"
 	"github.com/wsy998/ast/internal/util"
 )
 
 type GoPkg struct {
+	Name      string
 	GoStructs []*GoStruct
 	Func      []*GoFunc
 	Imports   map[string]string
 }
 
 func (f *GoPkg) String() string {
+
 	text := util.NewText()
+	text.WriteString("package " + f.Name)
+	text.WriteEndl()
+	if f.Imports != nil && len(f.Imports) > 0 {
+		for n, p := range f.Imports {
+			if strings.HasSuffix(p, n) {
+				text.WriteString(p)
+			} else {
+				text.WriteString(n + " " + p)
+			}
+		}
+	}
+
 	for _, goStruct := range f.GoStructs {
 		text.WriteString(consts.Type)
 		text.WriteSpace()
@@ -28,7 +44,7 @@ func (f *GoPkg) String() string {
 		text.WriteEndl()
 	}
 	for _, goFunc := range f.Func {
-		text.WriteString(goFunc.String())
+		text.WriteStringWithEndl(goFunc.String())
 	}
 	return text.String()
 }

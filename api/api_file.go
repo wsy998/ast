@@ -1,4 +1,4 @@
-package parser
+package api
 
 import (
 	"strings"
@@ -11,10 +11,13 @@ type GoFile struct {
 	Imports   map[string]string
 	GoStructs []*GoStruct
 	Func      []*GoFunc
+	Pkg       string
 }
 
 func (f *GoFile) String() string {
 	builder := util.NewText()
+	builder.WriteString("package " + f.Pkg)
+	builder.WriteEndl()
 	if len(f.Imports) > 0 {
 		builder.WriteString(consts.Import)
 		if len(f.Imports) > 1 {
@@ -55,7 +58,6 @@ func (f *GoFile) String() string {
 }
 
 func NewGoFile() *GoFile {
-
 	return &GoFile{}
 }
 

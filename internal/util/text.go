@@ -9,17 +9,25 @@ import (
 )
 
 func UnwrapQuote(str string) string {
+	if EmptyString(str) {
+		return ""
+	}
 	s := []string{"`", `"`}
-	sl := ""
+	sl := strings.Clone(str)
+	ret := sl
+
+	startIndex := 1
+	lastIndex := len(sl) - 1
 	for _, s2 := range s {
 		if strings.HasPrefix(str, s2) && strings.HasSuffix(str, s2) {
-			sl = str[1 : len(str)-1]
+			ret = sl[startIndex:lastIndex]
+			break
 		}
 	}
-	return sl
+	return ret
 }
 func EmptyString(str string) bool {
-	return str == consts.Empty && len(str) == 0
+	return str == consts.Empty
 }
 func UcFirst(s string) string {
 	if len(s) == 0 {

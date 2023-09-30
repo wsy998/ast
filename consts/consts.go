@@ -1,4 +1,4 @@
-package parser
+package consts
 
 const (
 	Bool          = "bool"
@@ -20,7 +20,7 @@ const (
 	Array         = "array"
 	Chan          = "chan"
 	Func          = "func"
-	Interface     = "uint8"
+	Interface     = "interface"
 	Map           = "map"
 	Pointer       = "pointer"
 	Slice         = "slice"

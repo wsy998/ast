@@ -1,4 +1,4 @@
-package parser
+package api
 
 // AllExportedField Retrieve all exported fields.
 func (g *GoStruct) AllExportedField() []*GoField {

@@ -10,9 +10,9 @@ type l struct {
 
 type O struct {
 	l
-	a string `k:"ss"`
+	a []string
 	c chan *string
-	g chan string
+	g map[string]string
 	d os.File
 	e *os.File
 	f struct {

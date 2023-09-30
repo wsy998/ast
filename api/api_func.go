@@ -1,4 +1,4 @@
-package parser
+package api
 
 import (
 	"github.com/wsy998/ast/internal/consts"
@@ -25,8 +25,8 @@ func (g *GoFunc) String() string {
 		builder.WriteEndl()
 	}
 	builder.WriteString(consts.Func)
-	builder.WriteSpace()
 	if g.Receiver != nil {
+		builder.WriteSpace()
 		builder.Writef("(%s)", g.Receiver.String())
 	}
 	builder.WriteSpace()
@@ -61,7 +61,7 @@ func (g *GoFunc) String() string {
 			}
 			builder.WriteCloseParen()
 		} else {
-			builder.WriteString(g.Out[0].Type)
+			builder.WriteString(g.Out[0].String())
 		}
 	}
 	return builder.String()
