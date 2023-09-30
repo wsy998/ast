@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"go/parser"
+	"go/token"
 	"os"
 	"path/filepath"
 	"strings"
@@ -9,7 +11,6 @@ import (
 )
 
 func ParsePackage(pkg string) (*api.GoPkg, error) {
-
 	dir, err := os.ReadDir(pkg)
 	if err != nil {
 		return nil, err
@@ -21,7 +22,12 @@ func ParsePackage(pkg string) (*api.GoPkg, error) {
 		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".go") {
 			continue
 		}
-		parse, err := Parse(filepath.Join(pkg, entry.Name()))
+		set := token.NewFileSet()
+		file, err := parser.ParseFile(set, filepath.Join(pkg, entry.Name()), nil, 0)
+		if err != nil {
+			return nil, err
+		}
+		parse, err := parse(file, true)
 		if err != nil {
 			return nil, err
 		}
@@ -33,6 +39,18 @@ func ParsePackage(pkg string) (*api.GoPkg, error) {
 		}
 		for n, goImport := range parse.Imports {
 			imports[n] = goImport
+		}
+	}
+
+	for _, goFunc := range funcs {
+		for _, goStruct := range structs {
+			if isConstructor(goFunc, goStruct) {
+				goStruct.Constructor = goFunc
+				break
+			}
+			if IsMethod(goFunc, goStruct) {
+				goStruct.Funs = append(goStruct.Funs, goFunc)
+			}
 		}
 	}
 	goPkg := api.NewGoPkg()
@@ -77,6 +95,17 @@ func ParsePackages(pkgs map[string]*api.GoPkg, re bool, pkg ...string) error {
 			goPkg.Func = append(goPkg.Func, file.Func...)
 			for name, imports := range file.Imports {
 				goPkg.Imports[name] = imports
+			}
+			for _, goFunc := range goPkg.Func {
+				for _, goStruct := range goPkg.GoStructs {
+					if isConstructor(goFunc, goStruct) {
+						goStruct.Constructor = goFunc
+						break
+					}
+					if IsMethod(goFunc, goStruct) {
+						goStruct.Funs = append(goStruct.Funs, goFunc)
+					}
+				}
 			}
 			pkgs[s] = goPkg
 
